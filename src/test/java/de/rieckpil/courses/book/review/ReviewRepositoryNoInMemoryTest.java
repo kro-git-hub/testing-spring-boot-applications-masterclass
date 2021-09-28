@@ -27,42 +27,15 @@ class ReviewRepositoryNoInMemoryTest {
     .withUsername("duke")
     .withPassword("s3cret");
 
-  @DynamicPropertySource
-  static void properties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", container::getJdbcUrl);
-    registry.add("spring.datasource.password", container::getPassword);
-    registry.add("spring.datasource.username", container::getUsername);
-  }
-
   @Autowired
   private ReviewRepository cut;
 
   @Test
   @Sql(scripts = "/scripts/INIT_REVIEW_EACH_BOOK.sql")
   void shouldGetTwoReviewStatisticsWhenDatabaseContainsTwoBooksWithReview() {
-
-    List<ReviewStatistic> result = cut.getReviewStatistics();
-
-    assertEquals(3, cut.count());
-    assertEquals(2, result.size());
-
-    result.forEach(reviewStatistic -> {
-      System.out.println("ReviewStatistic");
-      System.out.println(reviewStatistic.getId());
-      System.out.println(reviewStatistic.getAvg());
-      System.out.println(reviewStatistic.getIsbn());
-      System.out.println(reviewStatistic.getRatings());
-      System.out.println("");
-    });
-
-    assertEquals(2, result.get(0).getRatings());
-    assertEquals(2, result.get(0).getId());
-    assertEquals(new BigDecimal("3.00"), result.get(0).getAvg());
   }
 
   @Test
   void databaseShouldBeEmpty() {
-    assertEquals(0, cut.count());
   }
-
 }

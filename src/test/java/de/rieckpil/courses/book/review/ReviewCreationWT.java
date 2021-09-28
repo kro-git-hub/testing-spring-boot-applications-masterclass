@@ -56,72 +56,8 @@ public class ReviewCreationWT extends AbstractWebTest {
 
   private static final String ISBN = "9780321751041";
 
-  @BeforeEach
-  public void setup() {
-    Configuration.timeout = 2000;
-    Configuration.baseUrl = SystemUtils.IS_OS_WINDOWS ? "http://host.docker.internal:8080" : "http://172.17.0.1:8080";
-
-    RemoteWebDriver remoteWebDriver = webDriverContainer.getWebDriver();
-    WebDriverRunner.setWebDriver(remoteWebDriver);
-
-    createBook();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    this.reviewRepository.deleteAll();
-    this.bookRepository.deleteAll();
-
-    for (LogEntry logEntry : getWebDriver().manage().logs().get(LogType.BROWSER)) {
-      LOG.info(logEntry.getMessage());
-    }
-  }
-
   @Test
   public void shouldCreateReviewAndDisplayItInReviewList() {
-    assertNotNull(bookRepository);
-    open("/");
-
-    performLogin();
-    submitReview();
-    verifyReviewIsPartOfAllReviews();
-  }
-
-  private void verifyReviewIsPartOfAllReviews() {
-    $("#all-reviews").click();
-    $("#reviews").should(Condition.appear);
-    $$("#reviews > div").shouldHave(CollectionCondition.size(1));
-    $("#review-0 .review-title").shouldHave(Condition.text("Great Book about Software Development with Java!"));
-    $("#review-0 .review-content").shouldHave(Condition.text("I really enjoyed reading this book. It contains great examples and discusses also advanced topics."));
-  }
-
-  private void submitReview() {
-    $("#submit-review").should(Condition.appear);
-    $("#submit-review").click();
-
-    $("#review-submit").should(Condition.appear);
-    $("#book-selection").click();
-    $$(".visible .menu > div").get(0).click();
-    $$("#book-rating > i").get(4).click();
-
-    $("#review-title").val("Great Book about Software Development with Java!");
-    $("#review-content").val("I really enjoyed reading this book. It contains great examples and discusses also advanced topics.");
-
-    screenshot("before_submit_review");
-
-    $("#review-submit").click();
-    $(".ui .success").should(Condition.appear);
-  }
-
-  private void performLogin() {
-    $("button.ui").click();
-    $("#kc-login").should(Condition.appear);
-    $("#username").val("duke");
-    $("#password").val("dukeduke");
-
-    screenshot("before_submit");
-
-    $("#kc-login").click();
   }
 
   private void createBook() {

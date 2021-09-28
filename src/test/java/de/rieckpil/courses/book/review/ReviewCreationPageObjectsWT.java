@@ -41,32 +41,8 @@ public class ReviewCreationPageObjectsWT extends AbstractWebTest {
 
   private static final String ISBN = "9780321751041";
 
-  @BeforeEach
-  public void setup() {
-    Configuration.timeout = 2000;
-    Configuration.baseUrl = SystemUtils.IS_OS_WINDOWS ? "http://host.docker.internal:8080" : "http://172.17.0.1:8080";
-
-    RemoteWebDriver remoteWebDriver = webDriverContainer.getWebDriver();
-    WebDriverRunner.setWebDriver(remoteWebDriver);
-  }
-
-  @AfterEach
-  public void tearDown() {
-    this.reviewRepository.deleteAll();
-    this.bookRepository.deleteAll();
-  }
-
   @Test
   public void shouldCreateReviewAndDisplayItInReviewList() {
-    createBook();
-
-    String reviewTitle = "Great Book about Software Development with Java!";
-    String reviewContent = "I really enjoyed reading this book. It contains great examples and discusses also advanced topics.";
-
-    dashboardPage.open();
-    loginPage.performLogin("duke", "dukeduke");
-    newReviewPage.submitReview(reviewTitle, reviewContent, 0, 4);
-    reviewListPage.shouldContainExactlyOneReview(reviewTitle, reviewContent);
   }
 
   private void createBook() {
