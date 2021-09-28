@@ -41,6 +41,15 @@ public class ReviewCreationPageObjectsWT extends AbstractWebTest {
 
   private static final String ISBN = "9780321751041";
 
+  @BeforeEach
+  public void setup() {
+    Configuration.timeout = 2000;
+    Configuration.baseUrl = SystemUtils.IS_OS_WINDOWS ? "http://host.docker.internal:8080" : "http://172.17.0.1:8080";
+
+    RemoteWebDriver remoteWebDriver = webDriverContainer.getWebDriver();
+    WebDriverRunner.setWebDriver(remoteWebDriver);
+  }
+
   @Test
   public void shouldCreateReviewAndDisplayItInReviewList() {
   }

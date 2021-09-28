@@ -48,6 +48,56 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookSynchronizationListenerIT {
 
+  static PostgreSQLContainer<?> database = new PostgreSQLContainer<>("postgres:12.3")
+    .withDatabaseName("test")
+    .withUsername("duke")
+    .withPassword("s3cret");
+
+  static LocalStackContainer localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.10.0"))
+    .withServices(SQS)
+    .withEnv("DEFAULT_REGION", "eu-central-1");
+
+  private static final String QUEUE_NAME = UUID.randomUUID().toString();
+  private static final String ISBN = "9780596004651";
+  private static String VALID_RESPONSE;
+
+  @DynamicPropertySource
+  static void properties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", database::getJdbcUrl);
+    registry.add("spring.datasource.password", database::getPassword);
+    registry.add("spring.datasource.username", database::getUsername);
+    registry.add("sqs.book-synchronization-queue", () -> QUEUE_NAME);
+  }
+
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    public AmazonSQSAsync amazonSQSAsync() {
+      return AmazonSQSAsyncClientBuilder.standard()
+        .withCredentials(localStack.getDefaultCredentialsProvider())
+        .withEndpointConfiguration(localStack.getEndpointConfiguration(SQS))
+        .build();
+    }
+  }
+
+  @BeforeAll
+  static void beforeAll() throws IOException, InterruptedException {
+    localStack.execInContainer("awslocal", "sqs", "create-queue", "--queue-name", QUEUE_NAME);
+  }
+
+  static {
+    database.start();
+    localStack.start();
+    try {
+      VALID_RESPONSE = new String(BookSynchronizationListenerIT.class
+        .getClassLoader()
+        .getResourceAsStream("stubs/openlibrary/success-" + ISBN + ".json")
+        .readAllBytes());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   @Autowired
   private QueueMessagingTemplate queueMessagingTemplate;
 
